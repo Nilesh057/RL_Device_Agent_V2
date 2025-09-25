@@ -1,0 +1,30 @@
+
+RL Device Agent v2 - Demo Report
+================================
+
+Demo Session Information:
+- Start Time: 2025-09-25 12:26:52
+- End Time: 2025-09-25 12:26:55
+- Duration: 0:00:03.694861
+
+Task Execution Summary:
+- Total Tasks: 3
+- Successful Executions: 3 (100.0%)
+- Tasks with Feedback: 1 (33.3%)
+- Positive Feedback: 0 (0.0% of feedback)
+
+Learning Statistics:
+- Final Q-table Size: 2 states
+- Exploration Rate: 0.197
+- Session Summary: {'session_id': '20250925_122652', 'total_actions': 6, 'average_reward': 0.6666666666666666, 'average_confidence': 0.12666666666666668, 'success_rate': 1.0, 'positive_feedback': 1, 'negative_feedback': 0, 'feedback_ratio': 1.0, 'current_episode': 1}
+
+Task Categories Covered:
+- audio_control: 1 tasks
+- system_operations: 1 tasks
+- file_operations: 1 tasks
+
+
+Detailed Task Results:
+ 1. ✅ audio preferences (confidence: 0.00, feedback: No feedback)
+ 2. ✅ battery status (confidence: 0.00, feedback: No feedback)
+ 3. ✅ create folder (confidence: 0.00, feedback: 👎)
