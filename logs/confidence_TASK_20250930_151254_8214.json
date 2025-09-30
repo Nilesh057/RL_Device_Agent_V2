@@ -1,0 +1,26 @@
+{
+  "task_id": "TASK_20250930_151254_8214",
+  "task_description": "ssh client",
+  "timestamp": "2025-09-30T15:12:54.753586",
+  "session_id": "20250930_151245",
+  "episode": 0,
+  "state": "intent_unknown_action",
+  "selected_action": "open_music_player",
+  "raw_confidence_score": 0.97,
+  "normalized_confidence": 0.97,
+  "confidence_category": "High",
+  "q_values": {
+    "open_music_player": 0.8167735455,
+    "volume_up": 0.05
+  },
+  "normalized_q_scores": {
+    "open_music_player": 1.0,
+    "volume_up": 0.0
+  },
+  "confidence_components": {
+    "q_value_spread": 0.7667735455,
+    "action_rank": 1,
+    "relative_advantage": 0.0,
+    "uncertainty": 0.61661322725
+  }
+}

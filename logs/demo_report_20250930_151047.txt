@@ -1,0 +1,44 @@
+
+RL Device Agent v2 - Demo Report
+================================
+
+Demo Session Information:
+- Start Time: 2025-09-30 15:06:07
+- End Time: 2025-09-30 15:10:31
+- Duration: 0:04:23.802655
+
+Task Execution Summary:
+- Total Tasks: 10
+- Successful Executions: 10 (100.0%)
+- Tasks with Feedback: 10 (100.0%)
+- Positive Feedback: 7 (70.0% of feedback)
+
+Learning Statistics:
+- Final Q-table Size: 21 states
+- Exploration Rate: 0.169
+- Session Summary: {'session_id': '20250930_150601', 'total_actions': 20, 'average_reward': 0.6, 'average_confidence': 0.369, 'success_rate': 1.0, 'positive_feedback': 1, 'negative_feedback': 0, 'feedback_ratio': 1.0, 'current_episode': 1}
+
+Task Categories Covered:
+- file_operations: 1 tasks
+- application_control: 1 tasks
+- security_privacy: 1 tasks
+- productivity_tasks: 1 tasks
+- audio_control: 1 tasks
+- task_management: 1 tasks
+- development_tools: 1 tasks
+- window_management: 1 tasks
+- media_content: 1 tasks
+- system_operations: 1 tasks
+
+
+Detailed Task Results:
+ 1. ✅ access downloads (confidence: 0.38, feedback: 👍)
+ 2. ✅ code editor (confidence: 0.73, feedback: 👍)
+ 3. ✅ private browsing (confidence: 0.41, feedback: 👍)
+ 4. ✅ dictionary lookup (confidence: 0.44, feedback: 👎)
+ 5. ✅ control volume (confidence: 0.00, feedback: 👎)
+ 6. ✅ background processes (confidence: 0.47, feedback: 👍)
+ 7. ✅ start ide (confidence: 0.76, feedback: 👍)
+ 8. ✅ fullscreen mode (confidence: 0.00, feedback: 👎)
+ 9. ✅ next song (confidence: 0.50, feedback: 👍)
+10. ✅ screen shot (confidence: 0.00, feedback: 👍)

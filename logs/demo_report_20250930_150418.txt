@@ -1,0 +1,34 @@
+
+RL Device Agent v2 - Demo Report
+================================
+
+Demo Session Information:
+- Start Time: 2025-09-30 15:03:50
+- End Time: 2025-09-30 15:03:55
+- Duration: 0:00:05.173339
+
+Task Execution Summary:
+- Total Tasks: 5
+- Successful Executions: 5 (100.0%)
+- Tasks with Feedback: 1 (20.0%)
+- Positive Feedback: 0 (0.0% of feedback)
+
+Learning Statistics:
+- Final Q-table Size: 18 states
+- Exploration Rate: 0.177
+- Session Summary: {'session_id': '20250930_150350', 'total_actions': 6, 'average_reward': 0.8333333333333334, 'average_confidence': 0.25333333333333335, 'success_rate': 1.0, 'positive_feedback': 0, 'negative_feedback': 1, 'feedback_ratio': 0.0, 'current_episode': 1}
+
+Task Categories Covered:
+- application_control: 1 tasks
+- system_operations: 1 tasks
+- file_operations: 1 tasks
+- audio_control: 1 tasks
+- window_management: 1 tasks
+
+
+Detailed Task Results:
+ 1. ✅ open terminal (confidence: 0.00, feedback: No feedback)
+ 2. ✅ computer specs (confidence: 0.38, feedback: No feedback)
+ 3. ✅ create folder (confidence: 0.38, feedback: No feedback)
+ 4. ✅ turn off audio (confidence: 0.76, feedback: No feedback)
+ 5. ✅ close current window (confidence: 0.00, feedback: 👎)

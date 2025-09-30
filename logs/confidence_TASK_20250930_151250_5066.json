@@ -1,0 +1,24 @@
+{
+  "task_id": "TASK_20250930_151250_5066",
+  "task_description": "connectivity test",
+  "timestamp": "2025-09-30T15:12:50.224675",
+  "session_id": "20250930_151245",
+  "episode": 0,
+  "state": "intent_check_network_status",
+  "selected_action": "open_settings",
+  "raw_confidence_score": 0.38,
+  "normalized_confidence": 0.38,
+  "confidence_category": "Low-Medium",
+  "q_values": {
+    "open_settings": 0.05
+  },
+  "normalized_q_scores": {
+    "open_settings": 0.05
+  },
+  "confidence_components": {
+    "q_value_spread": 0.0,
+    "action_rank": 0,
+    "relative_advantage": 0.0,
+    "uncertainty": 1.0
+  }
+}

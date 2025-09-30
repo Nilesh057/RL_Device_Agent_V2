@@ -1,0 +1,26 @@
+{
+  "task_id": "TASK_20250930_151252_3296",
+  "task_description": "window on top",
+  "timestamp": "2025-09-30T15:12:52.710897",
+  "session_id": "20250930_151245",
+  "episode": 0,
+  "state": "intent_unknown_action",
+  "selected_action": "open_music_player",
+  "raw_confidence_score": 0.9099999999999999,
+  "normalized_confidence": 0.9099999999999999,
+  "confidence_category": "High",
+  "q_values": {
+    "open_music_player": 0.65651055,
+    "volume_up": 0.05
+  },
+  "normalized_q_scores": {
+    "open_music_player": 1.0,
+    "volume_up": 0.0
+  },
+  "confidence_components": {
+    "q_value_spread": 0.60651055,
+    "action_rank": 1,
+    "relative_advantage": 0.0,
+    "uncertainty": 0.6967447250000001
+  }
+}

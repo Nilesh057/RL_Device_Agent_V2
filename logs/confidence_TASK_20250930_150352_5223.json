@@ -1,0 +1,24 @@
+{
+  "task_id": "TASK_20250930_150352_5223",
+  "task_description": "create folder",
+  "timestamp": "2025-09-30T15:03:52.481830",
+  "session_id": "20250930_150350",
+  "episode": 0,
+  "state": "intent_create_document",
+  "selected_action": "check_disk_usage",
+  "raw_confidence_score": 0.38,
+  "normalized_confidence": 0.38,
+  "confidence_category": "Low-Medium",
+  "q_values": {
+    "check_disk_usage": 0.05
+  },
+  "normalized_q_scores": {
+    "check_disk_usage": 0.05
+  },
+  "confidence_components": {
+    "q_value_spread": 0.0,
+    "action_rank": 0,
+    "relative_advantage": 0.0,
+    "uncertainty": 1.0
+  }
+}

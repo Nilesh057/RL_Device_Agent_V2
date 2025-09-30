@@ -1,0 +1,32 @@
+{
+  "task_id": "TASK_20250930_165228_6843",
+  "task_description": "open notepad",
+  "timestamp": "2025-09-30T16:52:28.975490",
+  "session_id": "20250930_165141",
+  "episode": 0,
+  "state": "intent_open_notepad",
+  "selected_action": "open_notepad",
+  "raw_confidence_score": 0.8799999999999999,
+  "normalized_confidence": 0.8799999999999999,
+  "confidence_category": "High",
+  "q_values": {
+    "clear_browser_data": 0.05,
+    "scan_for_malware": 0.05,
+    "open_notepad": 0.578314,
+    "check_memory_usage": 0.05,
+    "show_running_processes": 0.05
+  },
+  "normalized_q_scores": {
+    "clear_browser_data": 0.0,
+    "scan_for_malware": 0.0,
+    "open_notepad": 1.0,
+    "check_memory_usage": 0.0,
+    "show_running_processes": 0.0
+  },
+  "confidence_components": {
+    "q_value_spread": 0.528314,
+    "action_rank": 1,
+    "relative_advantage": 0.0,
+    "uncertainty": 0.735843
+  }
+}

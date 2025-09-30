@@ -1,0 +1,14 @@
+RL Device Agent v2 - Session Summary
+========================================
+
+Session ID: 20250930_161114
+Total Actions: 7
+Average Reward: 0.857
+Average Confidence: 0.443
+Success Rate: 100.0%
+Positive Feedback: 1
+Negative Feedback: 0
+Feedback Ratio: 100.0%
+Current Episode: 1
+
+Report Generated: 2025-09-30 16:11:26

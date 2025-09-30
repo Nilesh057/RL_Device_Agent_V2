@@ -351,6 +351,190 @@ class Logger:
         
         else:
             raise ValueError("Unsupported export format. Use 'csv' or 'json'")
+    
+    def log_confidence_per_task(self, task_id: str, task_description: str, 
+                               confidence_score: float, state: str, action: str,
+                               q_values: Dict[str, float], normalized_scores: Dict[str, float]):
+        """Log detailed confidence information per task to standalone files"""
+        try:
+            # Normalize confidence score (0-1 range with proper scaling)
+            normalized_confidence = max(0.0, min(1.0, confidence_score))
+            
+            # Create confidence data
+            confidence_data = {
+                'task_id': task_id,
+                'task_description': task_description,
+                'timestamp': datetime.now().isoformat(),
+                'session_id': self.current_session_id,
+                'episode': self.episode_count,
+                'state': state,
+                'selected_action': action,
+                'raw_confidence_score': confidence_score,
+                'normalized_confidence': normalized_confidence,
+                'confidence_category': self._categorize_confidence(normalized_confidence),
+                'q_values': q_values,
+                'normalized_q_scores': normalized_scores,
+                'confidence_components': self._calculate_confidence_components(q_values, action)
+            }
+            
+            # Save to task-specific CSV
+            self._save_task_confidence_csv(confidence_data)
+            
+            # Save to task-specific JSON
+            self._save_task_confidence_json(confidence_data)
+            
+            print(f"📊 Confidence logged for task {task_id}: {normalized_confidence:.3f} ({confidence_data['confidence_category']})")
+            
+        except Exception as e:
+            print(f"❌ Failed to log confidence for task {task_id}: {e}")
+    
+    def _categorize_confidence(self, confidence: float) -> str:
+        """Categorize confidence score into human-readable categories"""
+        if confidence >= 0.8:
+            return "High"
+        elif confidence >= 0.6:
+            return "Medium-High"
+        elif confidence >= 0.4:
+            return "Medium"
+        elif confidence >= 0.2:
+            return "Low-Medium"
+        else:
+            return "Low"
+    
+    def _calculate_confidence_components(self, q_values: Dict[str, float], selected_action: str) -> Dict[str, float]:
+        """Calculate detailed confidence components for transparency"""
+        if not q_values or len(q_values) < 2:
+            return {
+                'q_value_spread': 0.0,
+                'action_rank': 0,
+                'relative_advantage': 0.0,
+                'uncertainty': 1.0
+            }
+        
+        sorted_actions = sorted(q_values.items(), key=lambda x: x[1], reverse=True)
+        action_rank = next((i for i, (a, _) in enumerate(sorted_actions) if a == selected_action), -1) + 1
+        
+        q_vals = list(q_values.values())
+        q_spread = max(q_vals) - min(q_vals) if len(q_vals) > 1 else 0.0
+        
+        selected_q = q_values.get(selected_action, 0.0)
+        best_q = sorted_actions[0][1] if sorted_actions else 0.0
+        relative_advantage = (selected_q - best_q) if best_q != 0 else 0.0
+        
+        # Calculate uncertainty (higher spread = lower uncertainty)
+        uncertainty = 1.0 - min(q_spread / 2.0, 1.0) if q_spread > 0 else 1.0
+        
+        return {
+            'q_value_spread': q_spread,
+            'action_rank': action_rank,
+            'relative_advantage': relative_advantage,
+            'uncertainty': uncertainty
+        }
+    
+    def _save_task_confidence_csv(self, confidence_data: Dict[str, Any]):
+        """Save confidence data to CSV file"""
+        confidence_csv_file = os.path.join(self.log_dir, "task_confidence_log.csv")
+        
+        # Flatten the nested dictionaries for CSV
+        flat_data = {
+            'task_id': confidence_data['task_id'],
+            'task_description': confidence_data['task_description'],
+            'timestamp': confidence_data['timestamp'],
+            'session_id': confidence_data['session_id'],
+            'episode': confidence_data['episode'],
+            'state': confidence_data['state'],
+            'selected_action': confidence_data['selected_action'],
+            'raw_confidence_score': confidence_data['raw_confidence_score'],
+            'normalized_confidence': confidence_data['normalized_confidence'],
+            'confidence_category': confidence_data['confidence_category'],
+            'q_values_json': json.dumps(confidence_data['q_values']),
+            'normalized_q_scores_json': json.dumps(confidence_data['normalized_q_scores']),
+            'q_value_spread': confidence_data['confidence_components']['q_value_spread'],
+            'action_rank': confidence_data['confidence_components']['action_rank'],
+            'relative_advantage': confidence_data['confidence_components']['relative_advantage'],
+            'uncertainty': confidence_data['confidence_components']['uncertainty']
+        }
+        
+        # Check if file exists and create header if needed
+        file_exists = os.path.exists(confidence_csv_file)
+        
+        with open(confidence_csv_file, 'a', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=flat_data.keys())
+            if not file_exists:
+                writer.writeheader()
+            writer.writerow(flat_data)
+    
+    def _save_task_confidence_json(self, confidence_data: Dict[str, Any]):
+        """Save confidence data to JSON file per task"""
+        task_id = confidence_data['task_id']
+        confidence_json_file = os.path.join(self.log_dir, f"confidence_{task_id}.json")
+        
+        with open(confidence_json_file, 'w') as jsonfile:
+            json.dump(confidence_data, jsonfile, indent=2)
+    
+    def export_confidence_summary(self, format_type: str = "csv") -> str:
+        """Export confidence summary statistics"""
+        try:
+            conn = sqlite3.connect(self.db_file)
+            
+            # Get confidence statistics
+            query = '''
+                SELECT 
+                    AVG(confidence_score) as avg_confidence,
+                    MIN(confidence_score) as min_confidence,
+                    MAX(confidence_score) as max_confidence,
+                    COUNT(*) as total_actions,
+                    COUNT(CASE WHEN confidence_score >= 0.8 THEN 1 END) as high_confidence,
+                    COUNT(CASE WHEN confidence_score >= 0.6 AND confidence_score < 0.8 THEN 1 END) as medium_high_confidence,
+                    COUNT(CASE WHEN confidence_score >= 0.4 AND confidence_score < 0.6 THEN 1 END) as medium_confidence,
+                    COUNT(CASE WHEN confidence_score < 0.4 THEN 1 END) as low_confidence
+                FROM actions 
+                WHERE session_id = ?
+            '''
+            
+            cursor = conn.cursor()
+            cursor.execute(query, (self.current_session_id,))
+            stats = cursor.fetchone()
+            
+            if stats and stats[3] > 0:  # total_actions > 0
+                summary_data = {
+                    'session_id': self.current_session_id,
+                    'timestamp': datetime.now().isoformat(),
+                    'total_actions': stats[3],
+                    'avg_confidence': round(stats[0] or 0, 3),
+                    'min_confidence': round(stats[1] or 0, 3),
+                    'max_confidence': round(stats[2] or 0, 3),
+                    'high_confidence_count': stats[4],
+                    'medium_high_confidence_count': stats[5],
+                    'medium_confidence_count': stats[6],
+                    'low_confidence_count': stats[7],
+                    'high_confidence_percentage': round((stats[4] / stats[3]) * 100, 1),
+                    'medium_high_confidence_percentage': round((stats[5] / stats[3]) * 100, 1),
+                    'medium_confidence_percentage': round((stats[6] / stats[3]) * 100, 1),
+                    'low_confidence_percentage': round((stats[7] / stats[3]) * 100, 1)
+                }
+            else:
+                summary_data = {'error': 'No confidence data found for current session'}
+            
+            conn.close()
+            
+            # Export to specified format
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            if format_type.lower() == "csv":
+                export_file = os.path.join(self.log_dir, f"confidence_summary_{timestamp}.csv")
+                df = pd.DataFrame([summary_data])
+                df.to_csv(export_file, index=False)
+            else:
+                export_file = os.path.join(self.log_dir, f"confidence_summary_{timestamp}.json")
+                with open(export_file, 'w') as f:
+                    json.dump(summary_data, f, indent=2)
+            
+            return export_file
+            
+        except Exception as e:
+            print(f"❌ Failed to export confidence summary: {e}")
+            return ""
 
 
 # Example usage and testing

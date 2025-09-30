@@ -177,6 +177,26 @@ class QLearningAgent:
         
         return max(0.0, min(1.0, final_confidence))
     
+    def _normalize_q_values(self, q_values: Dict[str, float]) -> Dict[str, float]:
+        """Normalize Q-values to 0-1 range for better confidence interpretation"""
+        if not q_values or len(q_values) < 2:
+            return q_values
+        
+        q_vals = list(q_values.values())
+        min_q = min(q_vals)
+        max_q = max(q_vals)
+        
+        if max_q == min_q:
+            # All Q-values are equal, normalize to 0.5
+            return {action: 0.5 for action in q_values.keys()}
+        
+        # Normalize to 0-1 range
+        normalized = {}
+        for action, q_val in q_values.items():
+            normalized[action] = (q_val - min_q) / (max_q - min_q)
+        
+        return normalized
+    
     def _get_top_actions(self, state: str, n: int = 2) -> List[Tuple[str, float]]:
         """Get top N actions for a state with their Q-values"""
         if state not in self.q_table:
@@ -332,6 +352,20 @@ class QLearningAgent:
             next_best_actions=[{"action": a, "q_value": q} for a, q in next_best_actions]
         )
         
+        # Log detailed confidence information
+        q_values_dict = dict(self.q_table[state]) if state in self.q_table else {}
+        normalized_q_scores = self._normalize_q_values(q_values_dict)
+        
+        self.logger.log_confidence_per_task(
+            task_id=self.current_task_id,
+            task_description=task_description,
+            confidence_score=confidence,
+            state=state,
+            action=selected_action,
+            q_values=q_values_dict,
+            normalized_scores=normalized_q_scores
+        )
+        
         # Store episode data
         self.episode_actions.append({
             "task_id": self.current_task_id,
@@ -460,7 +494,7 @@ class QLearningAgent:
         self.save_qtable()
     
     def save_qtable(self):
-        """Save Q-table to file"""
+        """Save Q-table to both pickle and CSV files"""
         try:
             os.makedirs(os.path.dirname(self.qtable_file), exist_ok=True)
             
@@ -476,16 +510,20 @@ class QLearningAgent:
                 }
             }
             
+            # Save to pickle (existing functionality)
             with open(self.qtable_file, 'wb') as f:
                 pickle.dump(qtable_data, f)
             
-            print(f"💾 Q-table saved to {self.qtable_file}")
+            # Save to CSV for review
+            self.save_qtable_csv()
+            
+            print(f"💾 Q-table saved to {self.qtable_file} and CSV")
             
         except Exception as e:
             print(f"❌ Failed to save Q-table: {e}")
     
     def load_qtable(self):
-        """Load Q-table from file"""
+        """Load Q-table from file (pickle preferred, CSV fallback)"""
         try:
             if os.path.exists(self.qtable_file):
                 with open(self.qtable_file, 'rb') as f:
@@ -502,10 +540,106 @@ class QLearningAgent:
                 print(f"   Last saved: {metadata.get('last_saved', 'Unknown')}")
                 
             else:
-                print(f"📝 No existing Q-table found, starting fresh")
+                print(f"📝 No existing Q-table found, trying CSV fallback")
+                self.load_qtable_csv()
                 
         except Exception as e:
-            print(f"❌ Failed to load Q-table: {e}")
+            print(f"❌ Failed to load Q-table from pickle: {e}")
+            print(f"📝 Trying CSV fallback")
+            self.load_qtable_csv()
+    
+    def save_qtable_csv(self):
+        """Save Q-table to CSV format for review and analysis"""
+        try:
+            # Create CSV filename
+            csv_file = self.qtable_file.replace('.pkl', '.csv')
+            
+            # Prepare data for CSV export
+            csv_data = []
+            
+            for state, actions in self.q_table.items():
+                for action, q_value in actions.items():
+                    csv_data.append({
+                        'state': state,
+                        'action': action,
+                        'q_value': q_value,
+                        'action_count': self.action_counts[state].get(action, 0),
+                        'state_visits': self.state_visits.get(state, 0),
+                        'last_updated': datetime.now().isoformat()
+                    })
+            
+            # Create DataFrame and save to CSV
+            df = pd.DataFrame(csv_data)
+            df.to_csv(csv_file, index=False)
+            
+            # Save metadata separately
+            metadata_file = csv_file.replace('.csv', '_metadata.json')
+            metadata = {
+                'epsilon': self.epsilon,
+                'total_states': len(self.q_table),
+                'total_actions': len(self.available_actions),
+                'available_actions': self.available_actions,
+                'export_timestamp': datetime.now().isoformat(),
+                'learning_parameters': {
+                    'learning_rate': self.learning_rate,
+                    'discount_factor': self.discount_factor,
+                    'epsilon_decay': self.epsilon_decay,
+                    'epsilon_min': self.epsilon_min
+                }
+            }
+            
+            with open(metadata_file, 'w') as f:
+                json.dump(metadata, f, indent=2)
+            
+            print(f"📊 Q-table exported to CSV: {csv_file}")
+            print(f"📊 Metadata saved to: {metadata_file}")
+            
+        except Exception as e:
+            print(f"❌ Failed to save Q-table to CSV: {e}")
+    
+    def load_qtable_csv(self):
+        """Load Q-table from CSV format"""
+        try:
+            csv_file = self.qtable_file.replace('.pkl', '.csv')
+            metadata_file = csv_file.replace('.csv', '_metadata.json')
+            
+            if not os.path.exists(csv_file):
+                print(f"📝 No CSV Q-table found, starting fresh")
+                return
+            
+            # Load Q-table data
+            df = pd.read_csv(csv_file)
+            
+            # Reconstruct Q-table
+            self.q_table = defaultdict(lambda: defaultdict(float))
+            self.action_counts = defaultdict(lambda: defaultdict(int))
+            self.state_visits = defaultdict(int)
+            
+            for _, row in df.iterrows():
+                state = row['state']
+                action = row['action']
+                q_value = row['q_value']
+                action_count = row['action_count']
+                state_visits = row['state_visits']
+                
+                self.q_table[state][action] = q_value
+                self.action_counts[state][action] = action_count
+                self.state_visits[state] = state_visits
+            
+            # Load metadata if available
+            if os.path.exists(metadata_file):
+                with open(metadata_file, 'r') as f:
+                    metadata = json.load(f)
+                    self.epsilon = metadata.get('epsilon', self.epsilon)
+                    
+                print(f"📚 Q-table loaded from CSV: {csv_file}")
+                print(f"   States: {len(self.q_table)}")
+                print(f"   Export timestamp: {metadata.get('export_timestamp', 'Unknown')}")
+            else:
+                print(f"📚 Q-table loaded from CSV: {csv_file} (no metadata)")
+                
+        except Exception as e:
+            print(f"❌ Failed to load Q-table from CSV: {e}")
             print(f"📝 Starting with empty Q-table")
     
     def get_learning_statistics(self) -> Dict[str, Any]:

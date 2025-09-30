@@ -1,0 +1,24 @@
+{
+  "task_id": "TASK_20250930_121037_4832",
+  "task_description": "open file browser",
+  "timestamp": "2025-09-30T12:10:37.807027",
+  "session_id": "20250930_120943",
+  "episode": 0,
+  "state": "intent_open_file",
+  "selected_action": "min_volume",
+  "raw_confidence_score": 0.38,
+  "normalized_confidence": 0.38,
+  "confidence_category": "Low-Medium",
+  "q_values": {
+    "min_volume": 0.15000000000000002
+  },
+  "normalized_q_scores": {
+    "min_volume": 0.15000000000000002
+  },
+  "confidence_components": {
+    "q_value_spread": 0.0,
+    "action_rank": 0,
+    "relative_advantage": 0.0,
+    "uncertainty": 1.0
+  }
+}

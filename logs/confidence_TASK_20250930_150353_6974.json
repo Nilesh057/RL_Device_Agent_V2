@@ -1,0 +1,26 @@
+{
+  "task_id": "TASK_20250930_150353_6974",
+  "task_description": "turn off audio",
+  "timestamp": "2025-09-30T15:03:53.488161",
+  "session_id": "20250930_150350",
+  "episode": 0,
+  "state": "intent_mute_audio",
+  "selected_action": "open_settings",
+  "raw_confidence_score": 0.76,
+  "normalized_confidence": 0.76,
+  "confidence_category": "Medium-High",
+  "q_values": {
+    "open_settings": 0.18500000000000003,
+    "open_notepad": 0.1
+  },
+  "normalized_q_scores": {
+    "open_settings": 1.0,
+    "open_notepad": 0.0
+  },
+  "confidence_components": {
+    "q_value_spread": 0.08500000000000002,
+    "action_rank": 1,
+    "relative_advantage": 0.0,
+    "uncertainty": 0.9575
+  }
+}

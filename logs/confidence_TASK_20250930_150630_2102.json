@@ -1,0 +1,28 @@
+{
+  "task_id": "TASK_20250930_150630_2102",
+  "task_description": "code editor",
+  "timestamp": "2025-09-30T15:06:30.683895",
+  "session_id": "20250930_150601",
+  "episode": 0,
+  "state": "intent_open_notepad",
+  "selected_action": "open_notepad",
+  "raw_confidence_score": 0.73,
+  "normalized_confidence": 0.73,
+  "confidence_category": "Medium-High",
+  "q_values": {
+    "clear_browser_data": 0.05,
+    "scan_for_malware": 0.05,
+    "open_notepad": 0.1
+  },
+  "normalized_q_scores": {
+    "clear_browser_data": 0.0,
+    "scan_for_malware": 0.0,
+    "open_notepad": 1.0
+  },
+  "confidence_components": {
+    "q_value_spread": 0.05,
+    "action_rank": 1,
+    "relative_advantage": 0.0,
+    "uncertainty": 0.975
+  }
+}

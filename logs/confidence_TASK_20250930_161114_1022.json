@@ -1,0 +1,20 @@
+{
+  "task_id": "TASK_20250930_161114_1022",
+  "task_description": "battery status",
+  "timestamp": "2025-09-30T16:11:14.861660",
+  "session_id": "20250930_161114",
+  "episode": 0,
+  "state": "intent_check_battery_status",
+  "selected_action": "snap_window_right",
+  "raw_confidence_score": 0.0,
+  "normalized_confidence": 0.0,
+  "confidence_category": "Low",
+  "q_values": {},
+  "normalized_q_scores": {},
+  "confidence_components": {
+    "q_value_spread": 0.0,
+    "action_rank": 0,
+    "relative_advantage": 0.0,
+    "uncertainty": 1.0
+  }
+}

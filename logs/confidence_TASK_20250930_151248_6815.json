@@ -1,0 +1,20 @@
+{
+  "task_id": "TASK_20250930_151248_6815",
+  "task_description": "resource monitor",
+  "timestamp": "2025-09-30T15:12:48.178164",
+  "session_id": "20250930_151245",
+  "episode": 0,
+  "state": "intent_monitor_performance",
+  "selected_action": "max_volume",
+  "raw_confidence_score": 0.0,
+  "normalized_confidence": 0.0,
+  "confidence_category": "Low",
+  "q_values": {},
+  "normalized_q_scores": {},
+  "confidence_components": {
+    "q_value_spread": 0.0,
+    "action_rank": 0,
+    "relative_advantage": 0.0,
+    "uncertainty": 1.0
+  }
+}

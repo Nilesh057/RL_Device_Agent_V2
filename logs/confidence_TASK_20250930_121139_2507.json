@@ -1,0 +1,26 @@
+{
+  "task_id": "TASK_20250930_121139_2507",
+  "task_description": "open feedback",
+  "timestamp": "2025-09-30T12:11:39.176400",
+  "session_id": "20250930_120943",
+  "episode": 0,
+  "state": "intent_open_notepad",
+  "selected_action": "open_spreadsheet",
+  "raw_confidence_score": 0.0,
+  "normalized_confidence": 0.0,
+  "confidence_category": "Low",
+  "q_values": {
+    "clear_browser_data": 0.095,
+    "open_notepad": 0.24
+  },
+  "normalized_q_scores": {
+    "clear_browser_data": 0.0,
+    "open_notepad": 1.0
+  },
+  "confidence_components": {
+    "q_value_spread": 0.145,
+    "action_rank": 0,
+    "relative_advantage": -0.24,
+    "uncertainty": 0.9275
+  }
+}

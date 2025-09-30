@@ -1,0 +1,24 @@
+{
+  "task_id": "TASK_20250930_151245_9376",
+  "task_description": "volume down",
+  "timestamp": "2025-09-30T15:12:45.097511",
+  "session_id": "20250930_151245",
+  "episode": 0,
+  "state": "intent_volume_down",
+  "selected_action": "open_settings",
+  "raw_confidence_score": 0.35,
+  "normalized_confidence": 0.35,
+  "confidence_category": "Low-Medium",
+  "q_values": {
+    "clear_browser_data": 0.15000000000000002
+  },
+  "normalized_q_scores": {
+    "clear_browser_data": 0.15000000000000002
+  },
+  "confidence_components": {
+    "q_value_spread": 0.0,
+    "action_rank": 0,
+    "relative_advantage": 0.0,
+    "uncertainty": 1.0
+  }
+}

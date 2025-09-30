@@ -1,0 +1,24 @@
+{
+  "task_id": "TASK_20250930_133803_6583",
+  "task_description": "open notepad",
+  "timestamp": "2025-09-30T13:38:03.206959",
+  "session_id": "20250930_133803",
+  "episode": 0,
+  "state": "intent_open_notepad",
+  "selected_action": "scan_for_malware",
+  "raw_confidence_score": 0.35,
+  "normalized_confidence": 0.35,
+  "confidence_category": "Low-Medium",
+  "q_values": {
+    "clear_browser_data": 0.05
+  },
+  "normalized_q_scores": {
+    "clear_browser_data": 0.05
+  },
+  "confidence_components": {
+    "q_value_spread": 0.0,
+    "action_rank": 0,
+    "relative_advantage": 0.0,
+    "uncertainty": 1.0
+  }
+}

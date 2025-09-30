@@ -1,0 +1,20 @@
+{
+  "task_id": "TASK_20250930_150945_2016",
+  "task_description": "fullscreen mode",
+  "timestamp": "2025-09-30T15:09:45.382012",
+  "session_id": "20250930_150601",
+  "episode": 0,
+  "state": "intent_fullscreen_mode",
+  "selected_action": "open_calendar",
+  "raw_confidence_score": 0.0,
+  "normalized_confidence": 0.0,
+  "confidence_category": "Low",
+  "q_values": {},
+  "normalized_q_scores": {},
+  "confidence_components": {
+    "q_value_spread": 0.0,
+    "action_rank": 0,
+    "relative_advantage": 0.0,
+    "uncertainty": 1.0
+  }
+}
