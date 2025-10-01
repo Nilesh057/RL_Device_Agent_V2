@@ -1,0 +1,20 @@
+{
+  "task_id": "TASK_20251001_122159_1256",
+  "task_description": "open_photo_viewer",
+  "timestamp": "2025-10-01T12:21:59.882069",
+  "session_id": "20251001_122041",
+  "episode": 0,
+  "state": "intent_open_photo_viewer",
+  "selected_action": "start_timer",
+  "raw_confidence_score": 0.0,
+  "normalized_confidence": 0.0,
+  "confidence_category": "Low",
+  "q_values": {},
+  "normalized_q_scores": {},
+  "confidence_components": {
+    "q_value_spread": 0.0,
+    "action_rank": 0,
+    "relative_advantage": 0.0,
+    "uncertainty": 1.0
+  }
+}

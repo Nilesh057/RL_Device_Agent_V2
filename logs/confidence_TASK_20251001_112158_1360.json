@@ -1,0 +1,26 @@
+{
+  "task_id": "TASK_20251001_112158_1360",
+  "task_description": "take screenshot",
+  "timestamp": "2025-10-01T11:21:58.126962",
+  "session_id": "20250930_172722",
+  "episode": 0,
+  "state": "intent_take_screenshot",
+  "selected_action": "open_photo_viewer",
+  "raw_confidence_score": 0.8799999999999999,
+  "normalized_confidence": 0.8799999999999999,
+  "confidence_category": "High",
+  "q_values": {
+    "open_photo_viewer": 0.6299385000000001,
+    "open_notepad": 0.1
+  },
+  "normalized_q_scores": {
+    "open_photo_viewer": 1.0,
+    "open_notepad": 0.0
+  },
+  "confidence_components": {
+    "q_value_spread": 0.5299385000000001,
+    "action_rank": 1,
+    "relative_advantage": 0.0,
+    "uncertainty": 0.73503075
+  }
+}

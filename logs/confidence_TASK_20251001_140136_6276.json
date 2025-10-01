@@ -1,0 +1,26 @@
+{
+  "task_id": "TASK_20251001_140136_6276",
+  "task_description": "open documents folder",
+  "timestamp": "2025-10-01T14:01:37.060623",
+  "session_id": "20251001_135919",
+  "episode": 0,
+  "state": "intent_open_documents_folder",
+  "selected_action": "open_documents_folder",
+  "raw_confidence_score": 0.76,
+  "normalized_confidence": 0.76,
+  "confidence_category": "Medium-High",
+  "q_values": {
+    "start_timer": 0.05,
+    "open_documents_folder": 0.24
+  },
+  "normalized_q_scores": {
+    "start_timer": 0.0,
+    "open_documents_folder": 1.0
+  },
+  "confidence_components": {
+    "q_value_spread": 0.19,
+    "action_rank": 1,
+    "relative_advantage": 0.0,
+    "uncertainty": 0.905
+  }
+}

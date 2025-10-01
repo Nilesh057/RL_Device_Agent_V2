@@ -1,0 +1,30 @@
+{
+  "task_id": "TASK_20251001_134715_2402",
+  "task_description": "open_notepad",
+  "timestamp": "2025-10-01T13:47:15.949225",
+  "session_id": "20251001_134706",
+  "episode": 0,
+  "state": "intent_open_notepad",
+  "selected_action": "scan_for_malware",
+  "raw_confidence_score": 0.0,
+  "normalized_confidence": 0.0,
+  "confidence_category": "Low",
+  "q_values": {
+    "open_notepad": 2.0,
+    "open_text_editor": 1.8,
+    "create_new_file": 1.0,
+    "open_file_browser": 0.5
+  },
+  "normalized_q_scores": {
+    "open_notepad": 1.0,
+    "open_text_editor": 0.8666666666666667,
+    "create_new_file": 0.3333333333333333,
+    "open_file_browser": 0.0
+  },
+  "confidence_components": {
+    "q_value_spread": 1.5,
+    "action_rank": 0,
+    "relative_advantage": -2.0,
+    "uncertainty": 0.25
+  }
+}

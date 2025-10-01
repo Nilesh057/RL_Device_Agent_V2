@@ -1,0 +1,20 @@
+{
+  "task_id": "TASK_20251001_112905_5085",
+  "task_description": "open calendar",
+  "timestamp": "2025-10-01T11:29:06.494541",
+  "session_id": "20251001_112851",
+  "episode": 0,
+  "state": "intent_open_calendar",
+  "selected_action": "volume_down",
+  "raw_confidence_score": 0.0,
+  "normalized_confidence": 0.0,
+  "confidence_category": "Low",
+  "q_values": {},
+  "normalized_q_scores": {},
+  "confidence_components": {
+    "q_value_spread": 0.0,
+    "action_rank": 0,
+    "relative_advantage": 0.0,
+    "uncertainty": 1.0
+  }
+}

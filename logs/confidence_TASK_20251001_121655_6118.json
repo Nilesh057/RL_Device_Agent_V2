@@ -1,0 +1,32 @@
+{
+  "task_id": "TASK_20251001_121655_6118",
+  "task_description": "show system info",
+  "timestamp": "2025-10-01T12:16:55.359945",
+  "session_id": "20251001_121654",
+  "episode": 0,
+  "state": "intent_show_system_info",
+  "selected_action": "show_system_info",
+  "raw_confidence_score": 0.7899999999999999,
+  "normalized_confidence": 0.7899999999999999,
+  "confidence_category": "Medium-High",
+  "q_values": {
+    "show_system_info": 2.0,
+    "check_network_status": 1.2,
+    "check_disk_usage": 1.2,
+    "check_memory_usage": 1.2,
+    "take_screenshot": 0.1
+  },
+  "normalized_q_scores": {
+    "show_system_info": 1.0,
+    "check_network_status": 0.5789473684210525,
+    "check_disk_usage": 0.5789473684210525,
+    "check_memory_usage": 0.5789473684210525,
+    "take_screenshot": 0.0
+  },
+  "confidence_components": {
+    "q_value_spread": 1.9,
+    "action_rank": 1,
+    "relative_advantage": 0.0,
+    "uncertainty": 0.050000000000000044
+  }
+}

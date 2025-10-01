@@ -3,8 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime, timedelta
+from typing import Optional
 import time
 import json
+import os
 
 from rl_agent import QLearningAgent
 from logger import Logger
@@ -13,7 +15,7 @@ from logger import Logger
 class FeedbackSystem:
     """User feedback collection and processing system"""
     
-    def __init__(self, agent: QLearningAgent = None):
+    def __init__(self, agent: Optional[QLearningAgent] = None):
         self.agent = agent
         self.pending_feedback = {}
         self.feedback_history = []
@@ -39,7 +41,8 @@ class FeedbackSystem:
             elif feedback_input in ['👎', 'bad', 'negative', 'no', 'n']:
                 feedback_type = "👎"
                 print("\n🤔 What should the agent have done instead?")
-                print("Available actions:", ", ".join(self.agent.available_actions[:10]) + "...")
+                if self.agent and hasattr(self.agent, 'available_actions'):
+                    print("Available actions:", ", ".join(self.agent.available_actions[:10]) + "...")
                 suggested_action = input("Suggested action (or press Enter to skip): ").strip()
                 if not suggested_action:
                     suggested_action = None
@@ -51,7 +54,7 @@ class FeedbackSystem:
         
         return feedback_type, suggested_action
     
-    def process_feedback(self, feedback_type: str, suggested_action: str = None) -> dict:
+    def process_feedback(self, feedback_type: str, suggested_action: Optional[str] = None) -> dict:
         """Process and apply feedback"""
         if not self.agent:
             return {"error": "No agent available"}
@@ -144,6 +147,20 @@ def create_streamlit_interface():
         
         # Quick Actions
         st.subheader("⚡ Quick Actions")
+        
+        # Debug mode toggle
+        debug_mode = st.checkbox("🐛 Debug Mode (Safe Training)", 
+                                value=getattr(st.session_state.agent.device_actions, 'debug_mode', False),
+                                help="Enable debug mode to simulate actions without actually executing them - safe for training")
+        
+        if debug_mode != getattr(st.session_state.agent.device_actions, 'debug_mode', False):
+            st.session_state.agent.device_actions.debug_mode = debug_mode
+            if debug_mode:
+                st.info("🐛 Debug mode enabled - actions will be simulated safely")
+            else:
+                st.warning("⚠️ Debug mode disabled - actions will be executed for real")
+                st.info("📸 Screenshots will now be saved to your Pictures folder and opened in photo viewer")
+        
         if st.button("🔄 Reset Episode"):
             st.session_state.agent.end_episode()
             st.success("Episode reset!")
@@ -161,7 +178,7 @@ def create_streamlit_interface():
                 st.error(f"Export failed: {e}")
     
     # Main interface tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["🎯 Task Execution", "📈 Learning Curve", "📋 Action History", "💡 Suggestions"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Task Execution", "📈 Learning Curve", "📋 Action History", "💡 Suggestions", "🔧 Action Testing"])
     
     with tab1:
         st.header("🎯 Task Execution")
@@ -180,11 +197,25 @@ def create_streamlit_interface():
         # Execute task
         if execute_button and task_input:
             with st.spinner("Executing task..."):
-                result = st.session_state.agent.process_task(task_input)
-                st.session_state.current_task_result = result
-                st.session_state.task_history.append(result)
+                try:
+                    result = st.session_state.agent.process_task(task_input)
+                    st.session_state.current_task_result = result
+                    st.session_state.task_history.append(result)
+                    
+                    # Show immediate feedback about execution
+                    if result['execution_success']:
+                        # Check if it was a placeholder action
+                        if "functionality available" in result['execution_message'].lower():
+                            st.warning(f"⚠️ Action executed but appears to be a placeholder: {result['execution_message']}")
+                        else:
+                            st.success("✅ Task executed successfully!")
+                    else:
+                        st.error(f"❌ Task execution failed: {result['execution_message']}")
+                        
+                except Exception as e:
+                    st.error(f"❌ Error during task execution: {str(e)}")
+                    st.session_state.current_task_result = None
             
-            st.success("Task executed!")
             st.rerun()
         
         # Display current task result
@@ -196,8 +227,17 @@ def create_streamlit_interface():
             # Results display
             col1, col2, col3 = st.columns(3)
             with col1:
-                status = "✅ Success" if result['execution_success'] else "❌ Failed"
-                st.metric("Status", status)
+                if result['execution_success']:
+                    # Check for placeholder actions
+                    if "functionality available" in result['execution_message'].lower():
+                        status = "⚠️ Placeholder"
+                        st.metric("Status", status, delta="Not fully implemented", delta_color="inverse")
+                    else:
+                        status = "✅ Success"
+                        st.metric("Status", status)
+                else:
+                    status = "❌ Failed"
+                    st.metric("Status", status)
             with col2:
                 st.metric("Confidence", f"{result['confidence_score']:.2f}")
             with col3:
@@ -209,6 +249,28 @@ def create_streamlit_interface():
                 st.write(f"**Parsed Intent:** {result['parsed_intent']}")
                 st.write(f"**Selected Action:** {result['selected_action']}")
                 st.write(f"**Message:** {result['execution_message']}")
+                
+                # Show intent-action alignment
+                if result['parsed_intent'] in st.session_state.agent.available_actions:
+                    expected_action = result['parsed_intent']
+                    if result['selected_action'] == expected_action:
+                        st.success(f"✅ Perfect alignment: Intent '{expected_action}' matched action '{result['selected_action']}'")
+                    else:
+                        st.warning(f"⚠️ Intent-action mismatch: Expected '{expected_action}' but got '{result['selected_action']}'")
+                        st.info("💡 Tip: Provide negative feedback with correct action suggestion to improve learning")
+                
+                # Special handling for screenshot results
+                if result['selected_action'] == 'take_screenshot' and result['execution_success']:
+                    execution_info = result.get('execution_info', {})
+                    if execution_info.get('full_path'):
+                        st.success(f"📸 Screenshot saved to: {execution_info['full_path']}")
+                        if execution_info.get('opened_in_viewer'):
+                            st.info("🖼️ Screenshot opened in your default photo viewer")
+                    
+                    # Show screenshot if debug mode is off
+                    if not getattr(st.session_state.agent.device_actions, 'debug_mode', False):
+                        if execution_info.get('full_path') and os.path.exists(execution_info['full_path']):
+                            st.image(execution_info['full_path'], caption=f"Screenshot: {execution_info.get('filename', 'screenshot')}", width=300)
             
             # Next best actions
             if result['next_best_actions']:
@@ -394,6 +456,157 @@ def create_streamlit_interface():
                     },
                     hide_index=True
                 )
+    
+    with tab5:
+        st.header("🔧 Action Testing & Validation")
+        
+        # Action validation section
+        st.subheader("🔍 Action Validation")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write("**Test Individual Actions:**")
+            test_action = st.selectbox(
+                "Select action to test:",
+                st.session_state.agent.available_actions,
+                key="test_action_select"
+            )
+            
+            if st.button("🧪 Test Action", key="test_single_action"):
+                if test_action:  # Check if action is selected
+                    with st.spinner(f"Testing {test_action}..."):
+                        # Validate action availability
+                        is_available, availability_msg = st.session_state.agent.device_actions.validate_action_availability(test_action)
+                        
+                        if not is_available:
+                            st.warning(f"⚠️ {availability_msg}")
+                        
+                        # Execute test
+                        success, message, info = st.session_state.agent.device_actions.execute_action(test_action)
+                        
+                        if success:
+                            st.success(f"✅ {message}")
+                            with st.expander("Execution Details"):
+                                st.json(info)
+                        else:
+                            st.error(f"❌ {message}")
+                            if "error" in info:
+                                st.code(f"Error: {info['error']}")
+                else:
+                    st.warning("Please select an action to test")
+        
+        with col2:
+            st.write("**Batch Action Testing:**")
+            
+            test_categories = {
+                "Basic Actions": ["open_notepad", "take_screenshot", "show_system_info"],
+                "Audio Controls": ["mute_audio", "unmute_audio", "volume_up", "volume_down"],
+                "File Operations": ["open_file_browser", "create_new_file", "open_documents_folder"],
+                "Window Management": ["minimize_all_windows", "maximize_window", "close_active_window"],
+                "System Info": ["check_network_status", "check_disk_usage", "check_memory_usage"]
+            }
+            
+            selected_category = st.selectbox("Select category to test:", list(test_categories.keys()))
+            
+            if st.button(f"🧪 Test {selected_category}", key="test_category_actions"):
+                actions_to_test = test_categories[selected_category]
+                
+                results = []
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                
+                for i, action in enumerate(actions_to_test):
+                    status_text.text(f"Testing {action}...")
+                    
+                    # Validate and test
+                    is_available, availability_msg = st.session_state.agent.device_actions.validate_action_availability(action)
+                    success, message, info = st.session_state.agent.device_actions.execute_action(action)
+                    
+                    results.append({
+                        "Action": action,
+                        "Available": "✅" if is_available else "❌",
+                        "Status": "✅" if success else "❌",
+                        "Message": message[:50] + "..." if len(message) > 50 else message,
+                        "Type": info.get("action_type", "unknown")
+                    })
+                    
+                    progress_bar.progress((i + 1) / len(actions_to_test))
+                
+                status_text.text("Testing complete!")
+                
+                # Display results
+                results_df = pd.DataFrame(results)
+                st.dataframe(results_df, hide_index=True)
+                
+                # Summary
+                successful = len([r for r in results if r["Status"] == "✅"])
+                st.metric("Success Rate", f"{successful}/{len(results)} ({successful/len(results)*100:.0f}%)")
+        
+        # Training recommendations
+        st.subheader("🎯 Training Recommendations")
+        
+        # Analyze which actions are working vs placeholders
+        working_actions = []
+        placeholder_actions = []
+        
+        for action in st.session_state.agent.available_actions[:20]:  # Test first 20 for performance
+            is_available, msg = st.session_state.agent.device_actions.validate_action_availability(action)
+            if is_available:
+                working_actions.append(action)
+            else:
+                placeholder_actions.append(action)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write("**✅ Fully Implemented Actions (Good for Training):**")
+            for action in working_actions[:10]:
+                st.write(f"• {action}")
+            if len(working_actions) > 10:
+                st.write(f"... and {len(working_actions) - 10} more")
+        
+        with col2:
+            st.write("**⚠️ Placeholder Actions (Limited Training Value):**")
+            for action in placeholder_actions[:10]:
+                st.write(f"• {action}")
+            if len(placeholder_actions) > 10:
+                st.write(f"... and {len(placeholder_actions) - 10} more")
+        
+        # Training suggestions
+        if placeholder_actions:
+            st.info(f"💡 **Training Tip**: Enable Debug Mode above to safely train on all {len(st.session_state.agent.available_actions)} actions without executing placeholders.")
+        
+        if working_actions:
+            st.success(f"✅ **Ready for Training**: {len(working_actions)} actions are fully implemented and ready for real execution training.")
+        
+        # Q-table status
+        st.subheader("🧠 Q-table Health Check")
+        
+        # Check for common misalignments
+        problem_states = []
+        if st.session_state.agent.q_table:
+            for state in st.session_state.agent.q_table:
+                if "intent_" in state:
+                    intent = state.replace("intent_", "")
+                    if intent in st.session_state.agent.available_actions:
+                        state_actions = st.session_state.agent.q_table[state]
+                        if state_actions:
+                            best_action = max(state_actions.items(), key=lambda x: x[1])[0]
+                            if best_action != intent:
+                                problem_states.append((state, intent, best_action))
+        
+        if problem_states:
+            st.warning(f"⚠️ Found {len(problem_states)} potential intent-action misalignments:")
+            for state, expected, actual in problem_states[:5]:
+                st.write(f"  • {state}: expects '{expected}' but prefers '{actual}'")
+            
+            if st.button("🔧 Run Q-table Correction", key="fix_qtable"):
+                st.info("🔄 Q-table correction would reset and fix misaligned intent-action mappings. This is a safe operation that preserves good learning while fixing obvious mistakes.")
+                st.write("**Run this command in terminal:**")
+                st.code("python3 fix_qtable.py")
+        else:
+            st.success("✅ Q-table appears healthy - no obvious intent-action misalignments detected!")
 
 
 def main():

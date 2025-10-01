@@ -56,6 +56,10 @@ class ComprehensiveDemo:
     
     def run_learning_demo(self):
         """Demonstrate learning capabilities with multiple episodes"""
+        if self.agent is None:
+            print("❌ Agent not initialized. Please run setup_demo_environment() first.")
+            return False
+            
         print("\n🧠 Learning Demonstration")
         print("=" * 40)
         print("Running multiple episodes to show learning progression...")
@@ -127,6 +131,10 @@ class ComprehensiveDemo:
     
     def generate_comprehensive_report(self):
         """Generate complete analysis report"""
+        if self.agent is None:
+            print("❌ Agent not initialized. Please run setup_demo_environment() first.")
+            return False
+            
         print("\n📊 Generating Comprehensive Report")
         print("=" * 40)
         
@@ -158,6 +166,10 @@ class ComprehensiveDemo:
     
     def show_demo_summary(self):
         """Display demo summary and next steps"""
+        if self.agent is None:
+            print("❌ Agent not initialized. Please run setup_demo_environment() first.")
+            return False
+            
         print("\n🎉 Demo Summary")
         print("=" * 40)
         

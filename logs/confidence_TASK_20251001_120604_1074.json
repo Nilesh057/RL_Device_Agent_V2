@@ -1,0 +1,26 @@
+{
+  "task_id": "TASK_20251001_120604_1074",
+  "task_description": "open browser",
+  "timestamp": "2025-10-01T12:06:05.252709",
+  "session_id": "20251001_120425",
+  "episode": 0,
+  "state": "intent_open_browser",
+  "selected_action": "open_browser",
+  "raw_confidence_score": 0.73,
+  "normalized_confidence": 0.73,
+  "confidence_category": "Medium-High",
+  "q_values": {
+    "clear_browser_data": 0.055499999999999994,
+    "open_browser": 0.1
+  },
+  "normalized_q_scores": {
+    "clear_browser_data": 0.0,
+    "open_browser": 1.0
+  },
+  "confidence_components": {
+    "q_value_spread": 0.04450000000000001,
+    "action_rank": 1,
+    "relative_advantage": 0.0,
+    "uncertainty": 0.97775
+  }
+}

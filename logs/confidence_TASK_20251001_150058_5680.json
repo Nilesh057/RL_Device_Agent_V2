@@ -1,0 +1,20 @@
+{
+  "task_id": "TASK_20251001_150058_5680",
+  "task_description": "open settings",
+  "timestamp": "2025-10-01T15:00:58.229347",
+  "session_id": "20251001_135919",
+  "episode": 0,
+  "state": "intent_open_settings",
+  "selected_action": "close_all_windows",
+  "raw_confidence_score": 0.0,
+  "normalized_confidence": 0.0,
+  "confidence_category": "Low",
+  "q_values": {},
+  "normalized_q_scores": {},
+  "confidence_components": {
+    "q_value_spread": 0.0,
+    "action_rank": 0,
+    "relative_advantage": 0.0,
+    "uncertainty": 1.0
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "task_id": "TASK_20251001_135815_9765",
+  "task_description": "open_calendar",
+  "timestamp": "2025-10-01T13:58:15.657937",
+  "session_id": "20251001_135653",
+  "episode": 0,
+  "state": "intent_open_calendar",
+  "selected_action": "check_network_status",
+  "raw_confidence_score": 0.38,
+  "normalized_confidence": 0.38,
+  "confidence_category": "Low-Medium",
+  "q_values": {
+    "check_network_status": 0.1,
+    "open_calendar": 0.1
+  },
+  "normalized_q_scores": {
+    "check_network_status": 0.5,
+    "open_calendar": 0.5
+  },
+  "confidence_components": {
+    "q_value_spread": 0.0,
+    "action_rank": 1,
+    "relative_advantage": 0.0,
+    "uncertainty": 1.0
+  }
+}

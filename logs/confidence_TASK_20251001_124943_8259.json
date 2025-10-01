@@ -1,0 +1,30 @@
+{
+  "task_id": "TASK_20251001_124943_8259",
+  "task_description": "mute audio",
+  "timestamp": "2025-10-01T12:49:43.447541",
+  "session_id": "20251001_124942",
+  "episode": 0,
+  "state": "intent_mute_audio",
+  "selected_action": "close_active_window",
+  "raw_confidence_score": 0.13999999999999999,
+  "normalized_confidence": 0.13999999999999999,
+  "confidence_category": "Low",
+  "q_values": {
+    "mute_audio": 2.0,
+    "unmute_audio": -0.5,
+    "volume_down": 1.0,
+    "toggle_audio": 1.5
+  },
+  "normalized_q_scores": {
+    "mute_audio": 1.0,
+    "unmute_audio": 0.0,
+    "volume_down": 0.6,
+    "toggle_audio": 0.8
+  },
+  "confidence_components": {
+    "q_value_spread": 2.5,
+    "action_rank": 0,
+    "relative_advantage": -2.0,
+    "uncertainty": 0.0
+  }
+}

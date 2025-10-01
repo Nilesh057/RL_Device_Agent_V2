@@ -7,13 +7,16 @@ from datetime import datetime
 from typing import Dict, Any, Tuple, Optional
 import psutil
 import json
+import signal
+from threading import Timer
 
 
 class DeviceActions:
     """Device control actions for RL agent with expanded functionality"""
     
-    def __init__(self):
+    def __init__(self, debug_mode: bool = False):
         self.system = platform.system()
+        self.debug_mode = debug_mode
         self.actions_map = {
             # File operations
             "open_file_browser": self.open_file_browser,
@@ -89,20 +92,83 @@ class DeviceActions:
         # Initialize pyautogui settings
         pyautogui.FAILSAFE = True
         pyautogui.PAUSE = 0.5
+        
+        if self.debug_mode:
+            print(f"🐛 DeviceActions initialized in DEBUG mode on {self.system}")
+            print(f"📋 Available actions: {len(self.actions_map)}")
     
-    def execute_action(self, action_name: str, **kwargs) -> Tuple[bool, str, Dict[str, Any]]:
-        """Execute a device action"""
+    def execute_action(self, action_name: str, timeout: int = 10, **kwargs) -> Tuple[bool, str, Dict[str, Any]]:
+        """Execute a device action with timeout and validation"""
         if action_name not in self.actions_map:
             return False, f"Unknown action: {action_name}", {}
         
+        # Debug mode simulation
+        if self.debug_mode:
+            time.sleep(0.1)  # Simulate execution time
+            return True, f"DEBUG: Simulated execution of '{action_name}'", {
+                "action_type": "debug",
+                "execution_time": datetime.now().isoformat(),
+                "platform": self.system,
+                "debug_mode": True
+            }
+        
         try:
-            return self.actions_map[action_name](**kwargs)
+            # Set up timeout for long-running actions
+            def timeout_handler():
+                raise TimeoutError(f"Action '{action_name}' timed out after {timeout} seconds")
+            
+            timer = Timer(timeout, timeout_handler)
+            timer.start()
+            
+            try:
+                result = self.actions_map[action_name](**kwargs)
+                timer.cancel()  # Cancel timeout if action completes
+                
+                # Validate result format
+                if not isinstance(result, tuple) or len(result) != 3:
+                    return False, f"Invalid result format from action '{action_name}'", {}
+                
+                success, message, info = result
+                
+                # Add execution metadata
+                if isinstance(info, dict):
+                    info["execution_time"] = datetime.now().isoformat()
+                    info["platform"] = self.system
+                
+                return success, message, info
+                
+            except TimeoutError as e:
+                timer.cancel()
+                return False, str(e), {"error": "timeout"}
+                
         except Exception as e:
             return False, f"Error executing {action_name}: {str(e)}", {"error": str(e)}
     
     def get_available_actions(self) -> list:
         """Get list of available actions"""
         return list(self.actions_map.keys())
+    
+    def validate_action_availability(self, action_name: str) -> Tuple[bool, str]:
+        """Validate if an action is available and properly implemented"""
+        if action_name not in self.actions_map:
+            return False, f"Action '{action_name}' not found"
+        
+        # Test if the action is a placeholder
+        try:
+            # Get the function
+            action_func = self.actions_map[action_name]
+            
+            # Check if it's a simple placeholder by examining the source
+            import inspect
+            source = inspect.getsource(action_func)
+            
+            if "functionality available" in source.lower():
+                return False, f"Action '{action_name}' is a placeholder implementation"
+            
+            return True, f"Action '{action_name}' is available"
+            
+        except Exception as e:
+            return False, f"Cannot validate action '{action_name}': {str(e)}"
     
     # Core implementations (key methods only - rest use similar patterns)
     def open_file_browser(self) -> Tuple[bool, str, Dict]:
@@ -119,13 +185,47 @@ class DeviceActions:
             return False, f"Failed to open file browser: {str(e)}", {}
     
     def take_screenshot(self) -> Tuple[bool, str, Dict]:
-        """Take a screenshot"""
+        """Take a screenshot and save to system Pictures directory"""
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"screenshot_{timestamp}.png"
+            
+            # Determine system Pictures directory
+            if self.system == "Windows":
+                pictures_dir = os.path.expanduser("~/Pictures")
+            elif self.system == "Darwin":
+                pictures_dir = os.path.expanduser("~/Pictures")
+            else:
+                pictures_dir = os.path.expanduser("~/Pictures")
+            
+            # Create Pictures directory if it doesn't exist
+            os.makedirs(pictures_dir, exist_ok=True)
+            
+            # Full path for screenshot 
+            screenshot_path = os.path.join(pictures_dir, filename)
+            
+            # Take screenshot
             screenshot = pyautogui.screenshot()
-            screenshot.save(filename)
-            return True, f"Screenshot saved as {filename}", {"filename": filename, "action_type": "system_operation"}
+            screenshot.save(screenshot_path)
+            
+            # Try to open the screenshot in default photo viewer
+            try:
+                if self.system == "Windows":
+                    os.startfile(screenshot_path)
+                elif self.system == "Darwin":
+                    subprocess.run(["open", screenshot_path], check=False)
+                else:
+                    subprocess.run(["xdg-open", screenshot_path], check=False)
+            except Exception as e:
+                print(f"Could not open photo viewer: {e}")
+            
+            return True, f"Screenshot saved to Pictures folder as {filename} and opened in photo viewer", {
+                "filename": filename, 
+                "full_path": screenshot_path,
+                "action_type": "system_operation",
+                "opened_in_viewer": True
+            }
+            
         except Exception as e:
             return False, f"Failed to take screenshot: {str(e)}", {}
     
@@ -205,16 +305,27 @@ class DeviceActions:
         cmd_map = {"Windows": ["start", "chrome"], "Darwin": ["open", "-a", "Safari"], "Linux": ["firefox"]}
         return self._exec_platform_cmd(cmd_map, "Browser opened successfully", "application", shell_windows=True)
     
-    def _exec_platform_cmd(self, cmd_map: dict, success_msg: str, action_type: str, shell_windows: bool = False) -> Tuple[bool, str, Dict]:
-        """Helper to execute platform-specific commands"""
+    def _exec_platform_cmd(self, cmd_map: dict, success_msg: str, action_type: str, shell_windows: bool = False, timeout: int = 5) -> Tuple[bool, str, Dict]:
+        """Helper to execute platform-specific commands with timeout"""
         try:
             if self.system in cmd_map:
-                subprocess.run(cmd_map[self.system], check=True, shell=(shell_windows and self.system == "Windows"))
-                return True, success_msg, {"action_type": action_type}
+                result = subprocess.run(
+                    cmd_map[self.system], 
+                    check=True, 
+                    shell=(shell_windows and self.system == "Windows"),
+                    timeout=timeout,
+                    capture_output=True,
+                    text=True
+                )
+                return True, success_msg, {"action_type": action_type, "stdout": result.stdout.strip()}
             else:
                 return False, f"Action not supported on {self.system}", {}
+        except subprocess.TimeoutExpired:
+            return False, f"Command timed out after {timeout} seconds", {"error": "timeout"}
+        except subprocess.CalledProcessError as e:
+            return False, f"Command failed with exit code {e.returncode}: {e.stderr}", {"error": "command_failed"}
         except Exception as e:
-            return False, f"Failed to execute command: {str(e)}", {}
+            return False, f"Failed to execute command: {str(e)}", {"error": str(e)}
     
     # Simplified implementations for new actions
     def open_documents_folder(self) -> Tuple[bool, str, Dict]:
@@ -290,7 +401,17 @@ class DeviceActions:
     
     # Placeholder implementations for remaining actions (following same pattern)
     def unmute_audio(self) -> Tuple[bool, str, Dict]:
-        return self.mute_audio()  # Simplified - same command toggles
+        """Unmute system audio"""
+        try:
+            if self.system == "Windows":
+                subprocess.run(["powershell", "-c", "(New-Object -comObject WScript.Shell).SendKeys([char]173)"], check=True)
+            elif self.system == "Darwin":
+                subprocess.run(["osascript", "-e", "set volume output muted false"], check=True)
+            else:
+                subprocess.run(["amixer", "set", "Master", "unmute"], check=True)
+            return True, "Audio unmuted successfully", {"action_type": "audio_control"}
+        except Exception as e:
+            return False, f"Failed to unmute audio: {str(e)}", {}
     
     def toggle_audio(self) -> Tuple[bool, str, Dict]:
         return self.mute_audio()
@@ -302,7 +423,25 @@ class DeviceActions:
         return True, "Min volume functionality available", {"action_type": "audio_control"}
     
     def lock_screen(self) -> Tuple[bool, str, Dict]:
-        return True, "Screen lock functionality available", {"action_type": "system_operation"}
+        """Lock the screen"""
+        try:
+            if self.system == "Windows":
+                subprocess.run(["rundll32.exe", "user32.dll,LockWorkStation"], check=True)
+            elif self.system == "Darwin":
+                subprocess.run(["/System/Library/CoreServices/Menu Extras/User.menu/Contents/Resources/CGSession", "-suspend"], check=True)
+            else:
+                # Try common Linux screen lockers
+                for cmd in [["gnome-screensaver-command", "-l"], ["xdg-screensaver", "lock"], ["loginctl", "lock-session"]]:
+                    try:
+                        subprocess.run(cmd, check=True)
+                        break
+                    except (subprocess.CalledProcessError, FileNotFoundError):
+                        continue
+                else:
+                    return False, "No screen locker found", {}
+            return True, "Screen locked successfully", {"action_type": "system_operation"}
+        except Exception as e:
+            return False, f"Failed to lock screen: {str(e)}", {}
     
     def open_task_manager(self) -> Tuple[bool, str, Dict]:
         cmd_map = {"Windows": ["taskmgr"], "Darwin": ["open", "-a", "Activity Monitor"], "Linux": ["gnome-system-monitor"]}
@@ -334,46 +473,152 @@ class DeviceActions:
     
     # Generic implementations for remaining methods
     def check_network_status(self) -> Tuple[bool, str, Dict]:
-        return True, "Network status check completed", {"connected": True, "action_type": "system_info"}
+        """Check network connectivity status"""
+        try:
+            import socket
+            # Try to connect to a well-known server
+            socket.create_connection(("8.8.8.8", 53), 2)
+            return True, "Network connection active", {"connected": True, "action_type": "system_info"}
+        except OSError:
+            return True, "Network connection unavailable", {"connected": False, "action_type": "system_info"}
+        except Exception as e:
+            return False, f"Failed to check network: {str(e)}", {}
     
     def check_disk_usage(self) -> Tuple[bool, str, Dict]:
-        return True, "Disk usage check completed", {"action_type": "system_info"}
+        """Check disk usage information"""
+        try:
+            if self.system == "Windows":
+                disk_path = 'C:'
+            else:
+                disk_path = '/'
+            
+            usage = psutil.disk_usage(disk_path)
+            used_percent = (usage.used / usage.total) * 100
+            
+            return True, f"Disk usage: {used_percent:.1f}% used", {
+                "total_gb": round(usage.total / (1024**3), 2),
+                "used_gb": round(usage.used / (1024**3), 2),
+                "free_gb": round(usage.free / (1024**3), 2),
+                "used_percent": round(used_percent, 1),
+                "action_type": "system_info"
+            }
+        except Exception as e:
+            return False, f"Failed to check disk usage: {str(e)}", {}
     
     def check_battery_status(self) -> Tuple[bool, str, Dict]:
-        return True, "Battery status check completed", {"action_type": "system_info"}
+        """Check battery status if available"""
+        try:
+            battery = psutil.sensors_battery()
+            if battery is None:
+                return True, "No battery detected (Desktop system)", {"has_battery": False, "action_type": "system_info"}
+            
+            return True, f"Battery: {battery.percent:.0f}% ({'Charging' if battery.power_plugged else 'Discharging'})", {
+                "percent": battery.percent,
+                "plugged": battery.power_plugged,
+                "has_battery": True,
+                "action_type": "system_info"
+            }
+        except Exception as e:
+            return False, f"Failed to check battery: {str(e)}", {}
     
     def open_calendar(self) -> Tuple[bool, str, Dict]:
-        return True, "Calendar functionality available", {"action_type": "application"}
+        """Open system calendar application"""
+        cmd_map = {
+            "Windows": ["start", "outlookcal:"], 
+            "Darwin": ["open", "-a", "Calendar"], 
+            "Linux": ["gnome-calendar"]
+        }
+        return self._exec_platform_cmd(cmd_map, "Calendar opened successfully", "application")
     
     def open_terminal(self) -> Tuple[bool, str, Dict]:
         cmd_map = {"Windows": ["cmd"], "Darwin": ["open", "-a", "Terminal"], "Linux": ["gnome-terminal"]}
         return self._exec_platform_cmd(cmd_map, "Terminal opened", "application")
     
     def open_settings(self) -> Tuple[bool, str, Dict]:
-        return True, "Settings functionality available", {"action_type": "application"}
+        """Open system settings"""
+        cmd_map = {
+            "Windows": ["start", "ms-settings:"], 
+            "Darwin": ["open", "-a", "System Preferences"], 
+            "Linux": ["gnome-control-center"]
+        }
+        return self._exec_platform_cmd(cmd_map, "Settings opened successfully", "application")
     
     # New application methods
     def open_email_app(self) -> Tuple[bool, str, Dict]:
-        return True, "Email app functionality available", {"action_type": "application"}
+        """Open default email application"""
+        cmd_map = {
+            "Windows": ["start", "mailto:"], 
+            "Darwin": ["open", "-a", "Mail"], 
+            "Linux": ["thunderbird"]
+        }
+        return self._exec_platform_cmd(cmd_map, "Email app opened successfully", "application")
     
     def open_music_player(self) -> Tuple[bool, str, Dict]:
-        return True, "Music player functionality available", {"action_type": "application"}
+        """Open default music player"""
+        cmd_map = {
+            "Windows": ["start", "mswindowsmusic:"], 
+            "Darwin": ["open", "-a", "Music"], 
+            "Linux": ["rhythmbox"]
+        }
+        return self._exec_platform_cmd(cmd_map, "Music player opened successfully", "application")
     
     def open_photo_viewer(self) -> Tuple[bool, str, Dict]:
-        return True, "Photo viewer functionality available", {"action_type": "application"}
+        """Open default photo viewer"""
+        cmd_map = {
+            "Windows": ["start", "ms-photos:"], 
+            "Darwin": ["open", "-a", "Photos"], 
+            "Linux": ["eog"]
+        }
+        return self._exec_platform_cmd(cmd_map, "Photo viewer opened successfully", "application")
     
     def open_video_player(self) -> Tuple[bool, str, Dict]:
-        return True, "Video player functionality available", {"action_type": "application"}
+        """Open default video player"""
+        cmd_map = {
+            "Windows": ["start", "mswindowsvideo:"], 
+            "Darwin": ["open", "-a", "QuickTime Player"], 
+            "Linux": ["totem"]
+        }
+        return self._exec_platform_cmd(cmd_map, "Video player opened successfully", "application")
     
     # Window management
     def maximize_window(self) -> Tuple[bool, str, Dict]:
-        return True, "Window maximize functionality available", {"action_type": "window_management"}
+        """Maximize the active window"""
+        try:
+            if self.system == "Windows":
+                pyautogui.hotkey('win', 'up')
+            elif self.system == "Darwin":
+                pyautogui.hotkey('cmd', 'ctrl', 'f')
+            else:
+                pyautogui.hotkey('alt', 'f10')
+            return True, "Window maximized successfully", {"action_type": "window_management"}
+        except Exception as e:
+            return False, f"Failed to maximize window: {str(e)}", {}
     
     def minimize_window(self) -> Tuple[bool, str, Dict]:
-        return True, "Window minimize functionality available", {"action_type": "window_management"}
+        """Minimize the active window"""
+        try:
+            if self.system == "Windows":
+                pyautogui.hotkey('win', 'down')
+            elif self.system == "Darwin":
+                pyautogui.hotkey('cmd', 'm')
+            else:
+                pyautogui.hotkey('alt', 'f9')
+            return True, "Window minimized successfully", {"action_type": "window_management"}
+        except Exception as e:
+            return False, f"Failed to minimize window: {str(e)}", {}
     
     def switch_window(self) -> Tuple[bool, str, Dict]:
-        return True, "Window switch functionality available", {"action_type": "window_management"}
+        """Switch between windows"""
+        try:
+            if self.system == "Windows":
+                pyautogui.hotkey('alt', 'tab')
+            elif self.system == "Darwin":
+                pyautogui.hotkey('cmd', 'tab')
+            else:
+                pyautogui.hotkey('alt', 'tab')
+            return True, "Window switched successfully", {"action_type": "window_management"}
+        except Exception as e:
+            return False, f"Failed to switch window: {str(e)}", {}
     
     def close_all_windows(self) -> Tuple[bool, str, Dict]:
         return True, "Close all windows functionality available", {"action_type": "window_management"}
@@ -382,13 +627,45 @@ class DeviceActions:
         return True, "Window tiling functionality available", {"action_type": "window_management"}
     
     def fullscreen_mode(self) -> Tuple[bool, str, Dict]:
-        return True, "Fullscreen mode functionality available", {"action_type": "window_management"}
+        """Toggle fullscreen mode for active window"""
+        try:
+            if self.system == "Windows":
+                pyautogui.press('f11')
+            elif self.system == "Darwin":
+                pyautogui.hotkey('cmd', 'ctrl', 'f')
+            else:
+                pyautogui.press('f11')
+            return True, "Fullscreen mode toggled successfully", {"action_type": "window_management"}
+        except Exception as e:
+            return False, f"Failed to toggle fullscreen: {str(e)}", {}
     
     def snap_window_left(self) -> Tuple[bool, str, Dict]:
-        return True, "Window snap left functionality available", {"action_type": "window_management"}
+        """Snap window to left half of screen"""
+        try:
+            if self.system == "Windows":
+                pyautogui.hotkey('win', 'left')
+            elif self.system == "Darwin":
+                # macOS doesn't have native window snapping, but we can try third-party or use Mission Control
+                pyautogui.hotkey('ctrl', 'left')
+            else:
+                pyautogui.hotkey('super', 'left')
+            return True, "Window snapped to left successfully", {"action_type": "window_management"}
+        except Exception as e:
+            return False, f"Failed to snap window left: {str(e)}", {}
     
     def snap_window_right(self) -> Tuple[bool, str, Dict]:
-        return True, "Window snap right functionality available", {"action_type": "window_management"}
+        """Snap window to right half of screen"""
+        try:
+            if self.system == "Windows":
+                pyautogui.hotkey('win', 'right')
+            elif self.system == "Darwin":
+                # macOS doesn't have native window snapping, but we can try third-party or use Mission Control
+                pyautogui.hotkey('ctrl', 'right')
+            else:
+                pyautogui.hotkey('super', 'right')
+            return True, "Window snapped to right successfully", {"action_type": "window_management"}
+        except Exception as e:
+            return False, f"Failed to snap window right: {str(e)}", {}
     
     # Performance and productivity
     def show_running_processes(self) -> Tuple[bool, str, Dict]:

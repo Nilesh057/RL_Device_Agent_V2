@@ -134,7 +134,7 @@ class QLearningAgent:
         
         return best_match or "unknown_action"
     
-    def _create_state_representation(self, task_intent: str, context: Dict = None) -> str:
+    def _create_state_representation(self, task_intent: str, context: Optional[Dict] = None) -> str:
         """Create state representation from task intent and context"""
         base_state = f"intent_{task_intent}"
         
@@ -222,7 +222,7 @@ class QLearningAgent:
         
         return result[:n]
     
-    def select_action(self, state: str, task_intent: str = None) -> Tuple[str, float, List[Tuple[str, float]]]:
+    def select_action(self, state: str, task_intent: Optional[str] = None) -> Tuple[str, float, List[Tuple[str, float]]]:
         """
         Select action using epsilon-greedy strategy with confidence scoring
         
@@ -286,7 +286,7 @@ class QLearningAgent:
         except Exception as e:
             return False, f"Action execution error: {str(e)}", {}, -2.0
     
-    def update_q_value(self, state: str, action: str, reward: float, next_state: str = None):
+    def update_q_value(self, state: str, action: str, reward: float, next_state: Optional[str] = None):
         """Update Q-value using Q-learning algorithm"""
         # Current Q-value
         current_q = self.q_table[state][action]
@@ -309,7 +309,7 @@ class QLearningAgent:
         self.action_counts[state][action] += 1
         self.state_visits[state] += 1
     
-    def process_task(self, task_description: str, context: Dict = None) -> Dict[str, Any]:
+    def process_task(self, task_description: str, context: Optional[Dict] = None) -> Dict[str, Any]:
         """
         Process a complete task from description to execution and learning
         
@@ -390,7 +390,7 @@ class QLearningAgent:
             "q_values": dict(self.q_table[state]) if state in self.q_table else {}
         }
     
-    def receive_feedback(self, feedback: str, suggested_action: str = None) -> float:
+    def receive_feedback(self, feedback: str, suggested_action: Optional[str] = None) -> float:
         """
         Process user feedback and update learning
         
@@ -474,8 +474,8 @@ class QLearningAgent:
         # Log episode metrics
         self.logger.log_episode_metrics(
             total_reward=total_reward,
-            average_confidence=avg_confidence,
-            success_rate=success_rate,
+            average_confidence=float(avg_confidence),
+            success_rate=float(success_rate),
             exploration_rate=self.epsilon
         )
         
@@ -616,11 +616,11 @@ class QLearningAgent:
             self.state_visits = defaultdict(int)
             
             for _, row in df.iterrows():
-                state = row['state']
-                action = row['action']
-                q_value = row['q_value']
-                action_count = row['action_count']
-                state_visits = row['state_visits']
+                state = str(row['state'])
+                action = str(row['action'])
+                q_value = float(row['q_value'])
+                action_count = int(row['action_count'])
+                state_visits = int(row['state_visits'])
                 
                 self.q_table[state][action] = q_value
                 self.action_counts[state][action] = action_count
@@ -657,7 +657,7 @@ class QLearningAgent:
         
         return stats
     
-    def suggest_next_actions(self, current_context: str = None) -> List[Tuple[str, float, str]]:
+    def suggest_next_actions(self, current_context: Optional[str] = None) -> List[Tuple[str, float, str]]:
         """
         Suggest next actions based on current context
         

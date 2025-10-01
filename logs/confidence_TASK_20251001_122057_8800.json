@@ -1,0 +1,30 @@
+{
+  "task_id": "TASK_20251001_122057_8800",
+  "task_description": "take screenshot",
+  "timestamp": "2025-10-01T12:20:57.256198",
+  "session_id": "20251001_122041",
+  "episode": 0,
+  "state": "intent_take_screenshot",
+  "selected_action": "check_battery_status",
+  "raw_confidence_score": 0.2333333333333333,
+  "normalized_confidence": 0.2333333333333333,
+  "confidence_category": "Low-Medium",
+  "q_values": {
+    "take_screenshot": 2.0,
+    "open_photo_viewer": -1.0,
+    "show_system_info": 0.1,
+    "open_browser": 0.1
+  },
+  "normalized_q_scores": {
+    "take_screenshot": 1.0,
+    "open_photo_viewer": 0.0,
+    "show_system_info": 0.3666666666666667,
+    "open_browser": 0.3666666666666667
+  },
+  "confidence_components": {
+    "q_value_spread": 3.0,
+    "action_rank": 0,
+    "relative_advantage": -2.0,
+    "uncertainty": 0.0
+  }
+}

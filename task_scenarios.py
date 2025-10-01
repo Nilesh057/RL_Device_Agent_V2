@@ -9,7 +9,7 @@ import random
 import time
 import json
 from datetime import datetime
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union
 import numpy as np
 
 from rl_agent import QLearningAgent
@@ -302,7 +302,7 @@ class TaskScenarios:
         
         return difficulty_map.get(category, "medium")
     
-    def get_random_task(self, category: str = None, difficulty: str = None) -> Dict:
+    def get_random_task(self, category: str | None = None, difficulty: str | None = None) -> Dict:
         """Get a random task, optionally filtered by category or difficulty"""
         available_tasks = self.all_tasks.copy()
         
@@ -376,7 +376,7 @@ class TaskScenarios:
 class DemoRunner:
     """Automated demo runner for showcasing agent capabilities"""
     
-    def __init__(self, agent: QLearningAgent = None, interactive: bool = True):
+    def __init__(self, agent: QLearningAgent | None = None, interactive: bool = True):
         self.agent = agent or QLearningAgent()
         self.interactive = interactive
         self.task_scenarios = TaskScenarios()
@@ -417,7 +417,7 @@ class DemoRunner:
                     feedback, suggestion = self._get_automated_feedback(result, task_info)
                 
                 if feedback:
-                    reward = self.agent.receive_feedback(feedback, suggestion)
+                    reward = self.agent.receive_feedback(feedback, suggestion or "")
                     demo_result["feedback"] = feedback
                     demo_result["suggestion"] = suggestion
                     demo_result["final_reward"] = reward
@@ -445,7 +445,7 @@ class DemoRunner:
         
         return self.demo_results
     
-    def _get_interactive_feedback(self) -> Tuple[str, str]:
+    def _get_interactive_feedback(self) -> Tuple[str | None, str | None]:
         """Get feedback interactively from user"""
         print("\n💬 Provide feedback for this action:")
         print("Options: 👍 (good), 👎 (wrong), skip")
@@ -463,7 +463,7 @@ class DemoRunner:
             else:
                 print("Invalid input. Use 👍, 👎, or skip")
     
-    def _get_automated_feedback(self, result: Dict, task_info: Dict) -> Tuple[str, str]:
+    def _get_automated_feedback(self, result: Dict, task_info: Dict) -> Tuple[str | None, str | None]:
         """Generate automated feedback based on execution success and context"""
         execution_success = result.get("execution_success", False)
         confidence_score = result.get("confidence_score", 0.0)
@@ -493,7 +493,7 @@ class DemoRunner:
             return "👎", suggested_action
         else:
             # Low confidence - provide some feedback for learning
-            return random.choice(["👍", "👎", None]), None
+            return random.choice(["👍", "👎"]), None
     
     def _generate_demo_report(self, start_time: datetime, end_time: datetime):
         """Generate comprehensive demo report"""

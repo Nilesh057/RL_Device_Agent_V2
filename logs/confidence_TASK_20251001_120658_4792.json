@@ -1,0 +1,26 @@
+{
+  "task_id": "TASK_20251001_120658_4792",
+  "task_description": "open photo viewer",
+  "timestamp": "2025-10-01T12:06:58.355611",
+  "session_id": "20251001_120425",
+  "episode": 0,
+  "state": "intent_open_photo_viewer",
+  "selected_action": "check_privacy_settings",
+  "raw_confidence_score": 0.0,
+  "normalized_confidence": 0.0,
+  "confidence_category": "Low",
+  "q_values": {
+    "toggle_audio": 0.05,
+    "open_photo_viewer": 0.1
+  },
+  "normalized_q_scores": {
+    "toggle_audio": 0.0,
+    "open_photo_viewer": 1.0
+  },
+  "confidence_components": {
+    "q_value_spread": 0.05,
+    "action_rank": 0,
+    "relative_advantage": -0.1,
+    "uncertainty": 0.975
+  }
+}

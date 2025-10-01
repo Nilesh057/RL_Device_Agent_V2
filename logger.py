@@ -276,7 +276,7 @@ class Logger:
             FROM actions
             ORDER BY timestamp DESC
             LIMIT ?
-        ''', conn, params=(limit,))
+        ''', conn, params=[limit])
         conn.close()
         return df
     

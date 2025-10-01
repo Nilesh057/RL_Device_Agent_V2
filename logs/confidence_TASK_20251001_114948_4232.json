@@ -1,0 +1,26 @@
+{
+  "task_id": "TASK_20251001_114948_4232",
+  "task_description": "open photo viewer",
+  "timestamp": "2025-10-01T11:49:48.926821",
+  "session_id": "20251001_114428",
+  "episode": 0,
+  "state": "intent_open_photo_viewer",
+  "selected_action": "open_photo_viewer",
+  "raw_confidence_score": 0.73,
+  "normalized_confidence": 0.73,
+  "confidence_category": "Medium-High",
+  "q_values": {
+    "scan_for_malware": 0.05,
+    "open_photo_viewer": 0.1
+  },
+  "normalized_q_scores": {
+    "scan_for_malware": 0.0,
+    "open_photo_viewer": 1.0
+  },
+  "confidence_components": {
+    "q_value_spread": 0.05,
+    "action_rank": 1,
+    "relative_advantage": 0.0,
+    "uncertainty": 0.975
+  }
+}
